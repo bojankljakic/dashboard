@@ -33,7 +33,7 @@ jobs:
             sudo -u postgres psql -d dashboard_db -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO dashboard_user; GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO dashboard_user;"
             pm2 restart dashboard-api
 
-            # Front
+            # Front end
             cd ../front
             npm install
             npm run build
