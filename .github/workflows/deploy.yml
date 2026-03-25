@@ -9,6 +9,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Créer le .env
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: echo "${{ secrets.ENV_FILE }}" > /var/www/dashboard/app/api/.env
       - name: Deploy sur VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -17,16 +24,16 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /var/www/dashboard/app
-
-            # Récupérer les dernières sources
             git pull origin main
 
-            # API — réinstaller si package.json a changé
+            # API
             cd api
             npm install --production
+            # Droits PostgreSQL sur toutes les tables
+            sudo -u postgres psql -d dashboard_db -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO dashboard_user; GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO dashboard_user;"
             pm2 restart dashboard-api
 
-            # Front — rebuild
+            # Front
             cd ../front
             npm install
             npm run build
